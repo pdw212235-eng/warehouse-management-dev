@@ -1,7 +1,14 @@
 // ─── 상태 ───────────────────────────────────────────────
-const GS_URL    = 'https://script.google.com/macros/s/AKfycbzTbofbljbiXTIDM3cdnpPydGYjR-pw-W3dsDlYDisyIAKntTBNhwULZUZ4X4zuuySu0Q/exec';
-const GS_TOKEN  = 'TEAM_SECRET_2024';
-const ADMIN_PIN = '5552';
+const CFG       = window.WH_CONFIG || {};
+const ENV       = CFG.ENV || 'dev';
+const GS_URL    = CFG.GS_URL || '';
+const GS_TOKEN  = CFG.GS_TOKEN || '';
+const ADMIN_PIN = CFG.ADMIN_PIN || '';
+// 운영 백엔드 ID. 개발판이 운영 시트에 기록하는 사고를 막는 안전장치.
+const PROD_SCRIPT_ID = 'AKfycbzTbofbljbiXTIDM3cdnpPydGYjR-pw-W3dsDlYDisyIAKntTBNhwULZUZ4X4zuuySu0Q';
+const BACKEND_BLOCK =
+  !GS_URL ? 'config.js에 백엔드 URL이 없습니다' :
+  (ENV !== 'prod' && GS_URL.includes(PROD_SCRIPT_ID)) ? '개발판이 운영 백엔드를 가리켜 차단했습니다' : '';
 let settings  = null;
 let records   = [];
 let stockData = [];
@@ -19,6 +26,11 @@ let noteBaseline = '';
 
 // ─── 초기화 ─────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async () => {
+  if (ENV !== 'prod') {
+    document.body.classList.add('env-dev');
+    document.title = '[DEV] ' + document.title;
+    document.querySelector('header h1').insertAdjacentHTML('beforeend', ' <b class="env-badge">DEV</b>');
+  }
   renderClock();
   setInterval(renderClock, 1000);
   await loadData();
@@ -27,7 +39,12 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 // ─── 데이터 로드 (Sheets) ────────────────────────────────
 async function loadData() {
-  if (!GS_URL) return;
+  if (BACKEND_BLOCK) {
+    setSyncStatus('error');
+    showToast(BACKEND_BLOCK, 'error');
+    if (!settings) { settings = getDefaultSettings(); loadSettingsUI(settings); }
+    return;
+  }
   setSyncStatus('syncing');
   try {
     const res  = await fetch(GS_URL + '?action=all&token=' + GS_TOKEN, { cache: 'no-cache' });
@@ -297,6 +314,7 @@ async function submitRecord() {
 
 // ─── fetch POST ──────────────────────────────────────────
 async function fetchPost(body) {
+  if (BACKEND_BLOCK) throw new Error(BACKEND_BLOCK);
   const res = await fetch(GS_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
