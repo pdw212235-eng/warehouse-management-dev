@@ -20,7 +20,9 @@
 
 ## 백엔드 (Apps Script)
 
-- 운영 Apps Script 코드는 아직 저장소 밖에 있다. 사본을 만들면 코드를 `backend/Code.gs`로 넣어 버전관리한다.
+- 개발용 웹앱(사본 시트): `AKfycbz1xF…` — 2026-10-12 분리 실측 확인(개발 주소로 쓴 값이 운영엔 안 나타남).
+  사본에는 `[개발판 연결 테스트]` 입고 1건(NotePC)이 테스트로 들어가 있다.
+- Apps Script 코드는 아직 저장소 밖에 있다. 받으면 `backend/Code.gs`로 넣어 버전관리한다.
 - 백엔드 사실: `settings`는 JSON 통째로 저장되고 모르는 키도 보존한다(`itemNotes`가 그렇게 들어감).
   `action=all`은 **최근 200건만** 내려준다 — 품목 합계는 `stock[].inQty/outQty`를 쓸 것.
 
